@@ -39,7 +39,13 @@ class GBATekHTML(object):
                 markdown.append('\n### ' + ''.join(contents).strip() + '\n\n')
             elif elem.name == 'pre':
                 if '_' in contents[0] or '  ' in contents[0]:
-                    markdown.append('```' + ''.join([str(child) for child in elem.children]) + '```\n')
+                    strings = []
+                    for child in elem.children:
+                        if child.name and child.name == 'b':
+                            strings.append(str(child.contents[0]))
+                        else:
+                            strings.append(str(child))
+                    markdown.append('```' + ''.join(strings) + '```\n')
                 else:
                     markdown.extend(contents)
                 markdown.append('\n')
