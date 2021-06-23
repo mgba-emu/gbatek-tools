@@ -49,7 +49,7 @@ class GBATekHTML(object):
                 else:
                     markdown.extend(contents)
                 markdown.append('\n')
-            elif elem.name == 'font':
+            elif elem.name == 'font' and 'size' in elem.attrs:
                 size = 4 - int(elem['size'])
                 markdown.append('\n%s %s\n\n' % ('#' * size, ''.join(contents).strip()))
             elif elem.name == 'br':
