@@ -26,6 +26,12 @@ html.enable_section('Inflate', getattr(args, 'ds', False))
 html.enable_section('3DS', getattr(args, '3ds', False))
 html.enable_section('ARM11', getattr(args, '3ds', False))
 
+if not getattr(args, 'ds', False):
+    html.crosslink('ds', 'ds.html')
+
+if not getattr(args, 'gba', False):
+    html.crosslink('gba', 'gba.html')
+
 # NO$GBA manual misplacement...
 html.enable_section('Notes', False)
 html.enable_section('Pocketstation', False)

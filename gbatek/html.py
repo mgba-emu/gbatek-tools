@@ -4,6 +4,7 @@ class GBATekHTML(object):
     def __init__(self):
         super(GBATekHTML, self).__init__()
         self.sections = {}
+        self.crosslinks = []
 
     def load(self, f):
         self.html = BeautifulSoup(f, from_encoding='latin-1')
@@ -19,6 +20,9 @@ class GBATekHTML(object):
 
     def enable_section(self, section, enable):
         self.sections[section] = enable
+
+    def crosslink(self, anchor, page):
+        self.crosslinks.append((anchor, page))
 
     def parse(self, elem, depth=0):
         markdown = []
@@ -39,7 +43,13 @@ class GBATekHTML(object):
                 if 'href' in elem.attrs:
                     if elem.parent.name == 'body':
                         markdown.append('- ')
-                    markdown.append('[%s](%s)' % (''.join(contents).strip(), elem['href']))
+                    href = elem['href']
+                    if href[0] == '#':
+                        for xref, url in self.crosslinks:
+                            if href[1:].startswith(xref):
+                                href = url + href
+                                break
+                    markdown.append('[%s](%s)' % (''.join(contents).strip(), href))
                 else:
                     markdown.append(str(elem))
             elif elem.name == 'b':
