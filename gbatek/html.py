@@ -1,10 +1,14 @@
 from bs4 import BeautifulSoup, Comment
 
 class GBATekHTML(object):
+    def __init__(self):
+        super(GBATekHTML, self).__init__()
+        self.sections = {}
+
     def load(self, f):
         self.html = BeautifulSoup(f, from_encoding='latin-1')
+        self.output = True
         self.markdown = ''.join(self.parse(self.html.body))
-        print(self.markdown)
 
     def format_line(self, text):
         text = text.replace('\r', '')
@@ -13,7 +17,10 @@ class GBATekHTML(object):
         text = text.replace('<', '\<')
         return text + '\n'
 
-    def parse(self, elem):
+    def enable_section(self, section, enable):
+        self.sections[section] = enable
+
+    def parse(self, elem, depth=0):
         markdown = []
         if not elem.name:
             if type(elem) == Comment:
@@ -24,7 +31,7 @@ class GBATekHTML(object):
             contents = []
             if len(elem.contents):
                 for child in elem.children:
-                    contents.extend(self.parse(child))
+                    contents.extend(self.parse(child, depth + 1))
             elif elem.string and elem.string.strip():
                 contents = [self.format_line(line) for line in elem.string.split('\n')]
 
@@ -36,7 +43,7 @@ class GBATekHTML(object):
                 else:
                     markdown.append(str(elem))
             elif elem.name == 'b':
-                markdown.append('\n### ' + ''.join(contents).strip() + '\n\n')
+                markdown.append('\n## ' + ''.join(contents).strip() + '\n\n')
             elif elem.name == 'pre':
                 if '_' in contents[0] or '  ' in contents[0]:
                     strings = []
@@ -50,8 +57,11 @@ class GBATekHTML(object):
                     markdown.extend(contents)
                 markdown.append('\n')
             elif elem.name == 'font' and 'size' in elem.attrs:
-                size = 4 - int(elem['size'])
-                markdown.append('\n%s %s\n\n' % ('#' * size, ''.join(contents).strip()))
+                size = 3 - int(elem['size'])
+                if size > 0:
+                    if size == 1:
+                        self.output = self.sections.get(contents[-1].strip().split()[0], True)
+                    markdown.append('\n%s %s\n\n' % ('#' * size, ''.join([content.strip() for content in contents])))
             elif elem.name == 'br':
                 markdown.append('\n')
             elif elem.name == 'table':
@@ -68,4 +78,7 @@ class GBATekHTML(object):
                 markdown.append('\n')
             else:
                 markdown.extend(contents)
-        return markdown
+        if depth != 1 or self.output:
+            return markdown
+        else:
+            return []
